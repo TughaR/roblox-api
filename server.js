@@ -11,19 +11,34 @@ app.get("/gamepasses/:userid", async (req, res) => {
     const userId = req.params.userid;
 
     try {
-        const url = `https://games.roblox.com/v1/users/${userId}/gamepasses?limit=50`;
+        // 🔥 INVENTARIO REAL DEL JUGADOR
+        const url = `https://inventory.roblox.com/v1/users/${userId}/assets/collectibles?assetType=GamePass&limit=100`;
 
         const response = await fetch(url);
         const data = await response.json();
 
-        res.json(data);
+        let lista = [];
+
+        if (data && data.data) {
+            for (let item of data.data) {
+                lista.push({
+                    id: item.assetId,
+                    name: item.name,
+                    price: item.recentPrice || 0
+                });
+            }
+        }
+
+        return res.json({ data: lista });
+
     } catch (err) {
-        res.status(500).json({ error: "Error obteniendo gamepasses" });
+        console.log("Error:", err.message);
+        res.json({ data: [] });
     }
 });
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log("Servidor corriendo en puerto", PORT);
+    console.log("Servidor corriendo 🚀");
 });
