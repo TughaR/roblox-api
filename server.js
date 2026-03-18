@@ -4,27 +4,25 @@ const fetch = require("node-fetch");
 
 const app = express();
 
-// 🔥 IMPORTANTE: aceptar JSON
-app.use(express.json());
-
-// Ruta principal
 app.get("/", (req, res) => {
     res.send("API funcionando 🚀");
 });
 
-// 🔥 RUTA GAMEPASSES (CORREGIDA)
 app.get("/gamepasses/:userid", async (req, res) => {
     const userId = req.params.userid;
 
-    console.log("Buscando gamepasses de:", userId);
-
     try {
+        console.log("Buscando gamepasses de:", userId);
+
         const url = `https://inventory.roblox.com/v1/users/${userId}/assets/collectibles?assetType=GamePass&limit=100`;
 
         const response = await fetch(url);
 
+        // 🔥 SI ROBLOX FALLA → no romper
         if (!response.ok) {
-            throw new Error("Error en Roblox API");
+            console.log("Roblox respondió mal:", response.status);
+
+            return res.json({ data: [] }); -- 🔥 NUNCA 500
         }
 
         const data = await response.json();
@@ -47,11 +45,12 @@ app.get("/gamepasses/:userid", async (req, res) => {
 
     } catch (err) {
         console.log("ERROR:", err.message);
-        res.status(500).json({ data: [] });
+
+        -- 🔥 NUNCA romper la API
+        res.json({ data: [] });
     }
 });
 
-// 🔥 ESTO ES CLAVE PARA RENDER
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
